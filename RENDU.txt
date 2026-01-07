@@ -1,0 +1,42 @@
+PROJET TOUBILIB - RENDU
+
+AUTEURS
+-------
+Guillaume Hess
+Mirac Demirci
+
+DÉPÔT GIT
+---------
+https://github.com/Kemayu/Toubilib
+
+
+FONCTIONNALITÉS MINIMALES
+-------------------------
+1. Lister les praticiens                                             [ fait ]  [    M     ]
+2. Afficher le détail d'un praticien                                 [ fait ]  [    M     ]
+3. Lister les créneaux de RDV occupés d'un praticien                 [ fait ]  [    G     ]
+4. Consulter un rendez-vous par identifiant                          [ fait ]  [    G     ]
+5. Réserver un rendez-vous                                           [ fait ]  [   G+M    ]
+6. Annuler un rendez-vous                                            [ fait ]  [   G+M    ]
+7. Afficher l'agenda d'un praticien                                  [ fait ]  [    M     ]
+8. S'authentifier (patient ou praticien)                             [ fait ]  [    G     ]
+
+FONCTIONNALITÉS ADDITIONNELLES
+------------------------------
+9.  Rechercher un praticien par spécialité/ville                     [ fait ]  [    M     ]
+10. Gérer le cycle de vie des RDV (honoré, non honoré)               [ fait ]  [    G+M   ]
+11. Historique des consultations d'un patient                        [ fait ]  [    M     ]
+12. S'inscrire en tant que patient                                   [ fait ]  [    G     ]
+13. Gérer les indisponibilités temporaires d'un praticien            [ fait ]  [    G     ]
+
+FONCTIONNALITÉ BONUS
+--------------------
+14. Rafraîchissement des tokens JWT (refresh token)                  [ fait ]  [    G     ]
+
+
+
+
+
+
+
+

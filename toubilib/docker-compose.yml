@@ -3,8 +3,7 @@ networks:
     driver: bridge
 
 services:
-  # service api.toubeelib : api pour la prise de rdv
-  #
+  # service api.toubilib : api complète pour la prise de rdv
   api.toubilib:
     build:
       context: build
@@ -19,10 +18,87 @@ services:
     depends_on:
       - toubiprat.db
       - toubiauth.db
+      - toubirdv.db
+      - toubipat.db
     command: sh -c "composer install && php -S 0.0.0.0:80 -t /var/php/public"
 
-    # service toubiprat.db : base de données postgresql pour les praticiens
+  # Gateway
+  gateway.toubilib:
+    build:
+      context: build
+      dockerfile: 8.4-cli.Dockerfile
+    ports:
+      - '6081:80'
+    volumes:
+      - ./gateway:/var/php
+    working_dir: /var/php
+    networks:
+      - toubilib.net
+    depends_on:
+      - app.auth
+      - app.praticiens
+      - app.rdv
+    command: sh -c "composer install && php -S 0.0.0.0:80 -t /var/php/public"
 
+  # Microservice authentification
+  app.auth:
+    build:
+      context: build
+      dockerfile: 8.4-cli.Dockerfile
+    ports:
+      - '6082:80'
+    volumes:
+      - ./app-auth:/var/php
+    working_dir: /var/php
+    networks:
+      - toubilib.net
+    depends_on:
+      - toubirdv.db
+      - toubiprat.db
+    command: sh -c "composer install && php -S 0.0.0.0:80 -t /var/php/public"
+    environment:
+      - SERVICE_TYPE=auth
+
+  # Microservice praticiens
+  app.praticiens:
+    build:
+      context: build
+      dockerfile: 8.4-cli.Dockerfile
+    ports:
+      - '6083:80'
+    volumes:
+      - ./app-praticiens:/var/php
+    working_dir: /var/php
+    networks:
+      - toubilib.net
+    depends_on:
+      - toubiprat.db
+    command: sh -c "composer install && php -S 0.0.0.0:80 -t /var/php/public"
+    environment:
+      - SERVICE_TYPE=praticiens
+
+  # Microservice rendez-vous
+  app.rdv:
+    build:
+      context: build
+      dockerfile: 8.4-cli.Dockerfile
+    ports:
+      - '6084:80'
+    volumes:
+      - ./app-rdv:/var/php
+    working_dir: /var/php
+    networks:
+      - toubilib.net
+    depends_on:
+      - toubirdv.db
+      - toubiprat.db
+    command: sh -c "composer install && php -S 0.0.0.0:80 -t /var/php/public"
+    environment:
+      - SERVICE_TYPE=rdv
+
+ 
+
+  # service toubiprat.db : base de données postgresql pour les praticiens
   toubiprat.db:
     image: 'postgres:latest'
     env_file: ./env/toubipratdb.env
@@ -31,7 +107,6 @@ services:
     networks:
       - toubilib.net
     volumes:
-      # - ./sql:/var/sql
       - ./sql/prati:/docker-entrypoint-initdb.d/
 
   toubiauth.db:
@@ -42,9 +117,7 @@ services:
     networks:
       - toubilib.net
     volumes:
-     # - ./sql:/var/sql
       - ./sql/auth:/docker-entrypoint-initdb.d/
-
 
   toubirdv.db:
     image: 'postgres:latest'
@@ -54,7 +127,6 @@ services:
     networks: 
        - toubilib.net
     volumes:
-      # - ./sql:/var/sql
        - ./sql/rdv:/docker-entrypoint-initdb.d/
 
   toubipat.db: 
@@ -65,16 +137,12 @@ services:
     networks:
       - toubilib.net
     volumes:
-      # - ./sql:/var/sql
       - ./sql/pat:/docker-entrypoint-initdb.d/
 
-  #
-  # service administration des bases sql
-  #
+  # Service administration des bases sql
   adminer:
     image: adminer
     ports:
       - '8080:8080'
     networks:
       - toubilib.net
-

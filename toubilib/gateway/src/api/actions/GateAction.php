@@ -46,9 +46,9 @@ class GateAction
             ];
             
             // Si le body n'est pas vide, l'ajouter
-            if ($request->getBody()->getSize() > 0) {
-                $request->getBody()->rewind();
-                $options['body'] = $request->getBody();
+            $bodyContent = (string) $request->getBody();
+            if (!empty($bodyContent)) {
+                $options['body'] = $bodyContent;
             }
             
             // Effectuer la requête au service cible
@@ -80,7 +80,12 @@ class GateAction
             return $e->getResponse();
             
         } catch (RequestException $e) {
-            // Gestion des erreurs de connexion
+            // Si une réponse est disponible (ex: 500 du serveur distant), on la renvoie telle quelle
+            if ($e->hasResponse()) {
+                 return $e->getResponse();
+            }
+            
+            // Sinon, c'est une erreur de connexion ou autre
             throw new HttpInternalServerErrorException(
                 $request,
                 "Erreur de communication avec le service distant: " . $e->getMessage()
@@ -108,11 +113,10 @@ class GateAction
             }
         }
         
-        // Routes pour le service RDV, patients, auth
+        // Routes pour le service RDV et patients
         if (
             strpos($path, '/rdvs') === 0 ||
-            strpos($path, '/patients') === 0 ||
-            strpos($path, '/auth') === 0
+            strpos($path, '/patients') === 0
         ) {
             // Retourner le client RDV si disponible, sinon le client par défaut
             if ($this->container->has('client.rdv')) {

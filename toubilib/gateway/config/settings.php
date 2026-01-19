@@ -15,7 +15,7 @@ return [
 
     // Service Auth 
     "api-auth" => [
-        'base_uri' => 'http://api.toubilib',   
+        'base_uri' => 'http://app.auth',   
         'timeout'  => 15.0
     ],
 ];

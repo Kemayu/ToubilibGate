@@ -14,13 +14,6 @@ use Slim\Psr7\Response;
 
 class AuthnMiddleware implements MiddlewareInterface
 {
-    private AuthProviderInterface $authProvider;
-
-    public function __construct(AuthProviderInterface $authProvider)
-    {
-        $this->authProvider = $authProvider;
-    }
-
     public function process(
         ServerRequestInterface $request,
         RequestHandlerInterface $handler
@@ -28,6 +21,9 @@ class AuthnMiddleware implements MiddlewareInterface
         $authHeader = $request->getHeaderLine('Authorization');
 
         if (empty($authHeader)) {
+            // Pas de token ? On laisse passer, l'AuthzMiddleware bloquera si besoin, ou on retourne 401.
+            // Le TD dit "extraire et décoder", la gateway a déjà vérifié l'auth. 
+            // Si pas de header, c'est louche venant de la gateway pour une route protégée.
             return $this->unauthorized('Missing Authorization header');
         }
 
@@ -38,16 +34,32 @@ class AuthnMiddleware implements MiddlewareInterface
         $token = $matches[1];
 
         try {
-            $profile = $this->authProvider->getSignedInUser($token);
+            // Décodage du payload JWT sans vérification de signature (confiance Gateway)
+            $parts = explode('.', $token);
+            if (count($parts) !== 3) {
+                throw new \Exception("Invalid token parts");
+            }
+            
+            $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1])), true);
+            
+            if (!$payload || !isset($payload['sub'], $payload['email'], $payload['role'])) {
+                 throw new \Exception("Invalid token payload");
+            }
+
+            $profile = new \toubilib\core\application\ports\api\dto\ProfileDTO(
+                $payload['sub'],
+                $payload['email'],
+                (int)$payload['role']
+            );
+
             $request = $request->withAttribute('authenticated_user', $profile);
 
             return $handler->handle($request);
-        } catch (AuthProviderExpiredAccessTokenException $e) {
-            return $this->unauthorized('Token has expired');
-        } catch (AuthProviderInvalidAccessTokenException $e) {
-            return $this->unauthorized('Invalid token');
+        } catch (\Exception $e) {
+            return $this->unauthorized('Invalid token: ' . $e->getMessage());
         }
     }
+
 
     private function unauthorized(string $message): ResponseInterface
     {

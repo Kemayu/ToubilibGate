@@ -40,7 +40,7 @@ return [
         return new ValidateInputRdv();
     },
     AuthnMiddleware::class => function (ContainerInterface $c) {
-        return new AuthnMiddleware($c->get(AuthProviderInterface::class));
+        return new AuthnMiddleware();
     },
     AuthzMiddleware::class => function (ContainerInterface $c) {
         return new AuthzMiddleware($c->get(AuthzServiceInterface::class));

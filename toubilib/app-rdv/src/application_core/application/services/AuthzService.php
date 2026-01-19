@@ -54,8 +54,8 @@ class AuthzService implements AuthzServiceInterface
 
     public function canCreateRdv(ProfileDTO $user): bool
     {
-        // Opération 6: uniquement patient authentifié
-        return $user->role === self::ROLE_PATIENT;
+        // Opération 6: patient ou praticien authentifié
+        return $user->role === self::ROLE_PATIENT || $user->role === self::ROLE_PRATICIEN;
     }
 
     public function canUpdateRdv(ProfileDTO $user, string $rdvId): bool

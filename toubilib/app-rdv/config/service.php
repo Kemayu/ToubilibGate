@@ -4,14 +4,12 @@ use Psr\Container\ContainerInterface;
 use GuzzleHttp\Client;
 use toubilib\core\application\ports\spi\repositoryInterfaces\ServicePatientInterface;
 use toubilib\core\application\ports\spi\repositoryInterfaces\ServicePraticienInterface;
-use toubilib\core\application\usecases\ServicePraticien;
-use toubilib\infra\repositories\PDOPraticienRepository;
+
 use toubilib\core\application\ports\spi\repositoryInterfaces\RdvRepositoryInterface;
 use toubilib\infra\repositories\PDORdvRepository;
 use toubilib\core\application\ports\spi\repositoryInterfaces\ServiceRendezVousInterface;
 use toubilib\core\application\usecases\ServiceRendezVous;
 
-// nouveaux imports pour patient
 use toubilib\core\application\ports\spi\repositoryInterfaces\PatientRepositoryInterface;
 use toubilib\infra\repositories\PDOPatientRepository;
 use toubilib\core\application\usecases\ServicePatient;
@@ -19,6 +17,9 @@ use toubilib\core\application\usecases\ServicePatient;
 use toubilib\core\application\services\AuthzService;
 use toubilib\core\application\ports\api\service\AuthzServiceInterface;
 use toubilib\infrastructure\adapters\PraticienServiceHttpAdapter;
+use toubilib\core\application\ports\spi\EventPublisherInterface;
+use toubilib\infra\messaging\RabbitMQEventPublisher;
+
 
 return [
     // Client Guzzle pour appeler le service praticiens
@@ -34,9 +35,23 @@ return [
         return new PraticienServiceHttpAdapter($c->get('client.praticiens'));
     },
 
+    // EventPublisher RabbitMQ
+    EventPublisherInterface::class => function (ContainerInterface $c) {
+        $host = $_ENV['RABBITMQ_HOST'] ?? 'rabbitmq';
+        $port = (int)($_ENV['RABBITMQ_PORT'] ?? 5672);
+        $user = $_ENV['RABBITMQ_USER'] ?? 'toubi';
+        $password = $_ENV['RABBITMQ_PASSWORD'] ?? 'toubi';
+        $exchange = $_ENV['RABBITMQ_EXCHANGE'] ?? 'rdv_events';
+        
+        return new RabbitMQEventPublisher($host, $port, $user, $password, $exchange);
+    },
+
     // service rendez-vous
     ServiceRendezVousInterface::class => function (ContainerInterface $c) {
-        return new ServiceRendezVous($c->get(RdvRepositoryInterface::class));
+        return new ServiceRendezVous(
+            $c->get(RdvRepositoryInterface::class),
+            $c->get(EventPublisherInterface::class)
+        );
     },
 
     AuthzServiceInterface::class => function (ContainerInterface $c) {

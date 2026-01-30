@@ -5,16 +5,19 @@ namespace toubilib\core\application\usecases;
 
 use toubilib\core\application\ports\spi\repositoryInterfaces\ServiceRendezVousInterface;
 use toubilib\core\application\ports\spi\repositoryInterfaces\RdvRepositoryInterface;
+use toubilib\core\application\ports\spi\EventPublisherInterface;
 use toubilib\core\application\ports\api\dto\InputRendezVousDTO;
 use toubilib\core\domain\entities\rdv\RendezVous;
 
 class ServiceRendezVous implements ServiceRendezVousInterface
 {
     private RdvRepositoryInterface $rdvRepository;
+    private EventPublisherInterface $eventPublisher;
 
-    public function __construct(RdvRepositoryInterface $rdvRepository)
+    public function __construct(RdvRepositoryInterface $rdvRepository, EventPublisherInterface $eventPublisher)
     {
         $this->rdvRepository = $rdvRepository;
+        $this->eventPublisher = $eventPublisher;
     }
 
     public function listerCreneauxPraticien(string $praticienId, string $from, string $to): array
@@ -159,6 +162,30 @@ class ServiceRendezVous implements ServiceRendezVousInterface
             return ['success' => false, 'code' => 'save_failed', 'message' => 'Échec sauvegarde RDV'];
         }
 
+        // Publier les événements de création
+        $eventData = [
+            'rdv_id' => $savedId,
+            'praticien_id' => $data['praticien_id'],
+            'patient_id' => $data['patient_id'],
+            'date_heure_debut' => $data['date_heure_debut'],
+            'date_heure_fin' => $data['date_heure_fin'],
+            'motif' => $data['motif_visite'] ?? null,
+            'event_type' => 'created',
+            'timestamp' => (new \DateTimeImmutable())->format('Y-m-d H:i:s')
+        ];
+
+        // Événement pour le praticien
+        $this->eventPublisher->publish('rdv.created.praticien', array_merge($eventData, [
+            'recipient_type' => 'praticien',
+            'recipient_id' => $data['praticien_id']
+        ]));
+
+        // Événement pour le patient
+        $this->eventPublisher->publish('rdv.created.patient', array_merge($eventData, [
+            'recipient_type' => 'patient',
+            'recipient_id' => $data['patient_id']
+        ]));
+
         return ['success' => true, 'id' => $savedId];
     }
 
@@ -187,6 +214,30 @@ class ServiceRendezVous implements ServiceRendezVousInterface
         if (!$updated) {
             return ['success' => false, 'code' => 'save_failed', 'message' => 'Échec sauvegarde annulation'];
         }
+
+        // Publier les événements d'annulation
+        $eventData = [
+            'rdv_id' => $id,
+            'praticien_id' => $rdv['praticien_id'],
+            'patient_id' => $rdv['patient_id'],
+            'date_heure_debut' => $rdv['date_heure_debut'],
+            'date_heure_fin' => $rdv['date_heure_fin'],
+            'motif' => $rdv['motif_visite'] ?? null,
+            'event_type' => 'cancelled',
+            'timestamp' => (new \DateTimeImmutable())->format('Y-m-d H:i:s')
+        ];
+
+        // Événement pour le praticien
+        $this->eventPublisher->publish('rdv.cancelled.praticien', array_merge($eventData, [
+            'recipient_type' => 'praticien',
+            'recipient_id' => $rdv['praticien_id']
+        ]));
+
+        // Événement pour le patient
+        $this->eventPublisher->publish('rdv.cancelled.patient', array_merge($eventData, [
+            'recipient_type' => 'patient',
+            'recipient_id' => $rdv['patient_id']
+        ]));
 
         return ['success' => true, 'id' => $id];
     }

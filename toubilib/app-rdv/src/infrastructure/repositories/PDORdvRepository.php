@@ -29,13 +29,6 @@ class PDORdvRepository implements RdvRepositoryInterface
 
     public function findCreneauxPraticien(string $praticienId, string $from, string $to): array
     {
-        if ($this->logger) {
-            $this->logger->debug('[PDORdvRepository] findCreneauxPraticien', [
-                'praticien_id' => $praticienId,
-                'from' => $from,
-                'to' => $to
-            ]);
-        }
         //status 1 rdv annulé
         $sql = '
             SELECT * FROM rdv 
@@ -55,10 +48,6 @@ class PDORdvRepository implements RdvRepositoryInterface
 
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-        if ($this->logger) {
-            $this->logger->debug('PDORdvRepository: fetched creneaux', ['count' => count($rows), 'praticien' => $praticienId, 'from' => $from, 'to' => $to]);
-        }
-
         return $rows ?: [];
     }
 
@@ -72,10 +61,6 @@ class PDORdvRepository implements RdvRepositoryInterface
         $stmt = $this->pdoRdv->prepare($sql);
         $stmt->execute([':id' => $id]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        if ($this->logger) {
-            $this->logger->debug('PDORdvRepository: fetched rdv by id', ['id' => $id, 'found' => (bool)$row]);
-        }
 
         return $row ?: null;
     }
@@ -108,14 +93,8 @@ class PDORdvRepository implements RdvRepositoryInterface
 
         try {
             $ok = $stmt->execute($params);
-            if ($this->logger) {
-                $this->logger->debug('PDORdvRepository: saved rdv', ['id' => $data['id'], 'ok' => $ok]);
-            }
             return $ok ? $data['id'] : null;
         } catch (\Throwable $e) {
-            if ($this->logger) {
-                $this->logger->error('PDORdvRepository: save failed', ['error' => $e->getMessage()]);
-            }
             return null;
         }
     }
@@ -175,9 +154,6 @@ class PDORdvRepository implements RdvRepositoryInterface
             }
             return $out;
         } catch (\PDOException $e) {
-            if ($this->logger) {
-                $this->logger->warning('getMotifsForPraticien failed', ['praticienId' => $praticienId, 'err' => $e->getMessage()]);
-            }
             return [];
         }
     }
@@ -201,14 +177,8 @@ class PDORdvRepository implements RdvRepositoryInterface
         $stmt = $this->pdoRdv->prepare($sql);
         try {
             $ok = $stmt->execute($params);
-            if ($this->logger) {
-                $this->logger->debug('PDORdvRepository: updated rdv', ['id' => $id, 'ok' => $ok, 'data' => $data]);
-            }
             return (bool)$ok;
         } catch (\Throwable $e) {
-            if ($this->logger) {
-                $this->logger->error('PDORdvRepository: update failed', ['id' => $id, 'err' => $e->getMessage()]);
-            }
             return false;
         }
     }
@@ -221,19 +191,12 @@ class PDORdvRepository implements RdvRepositoryInterface
             $stmt->execute(['id' => $id, 'status' => $status]);
             return $stmt->rowCount() > 0;
         } catch (\Throwable $e) {
-            if ($this->logger) {
-                $this->logger->error('PDORdvRepository: updateStatus failed', ['id' => $id, 'status' => $status, 'err' => $e->getMessage()]);
-            }
             return false;
         }
     }
 
     public function getRendezVousByPatientId(string $patientId): array
     {
-        if ($this->logger) {
-            $this->logger->debug('[PDORdvRepository] getRendezVousByPatientId', ['patient_id' => $patientId]);
-        }
-
         // Récupérer les RDV du patient
         $sql = '
             SELECT id, praticien_id, patient_id, patient_email, date_heure_debut, 
@@ -247,10 +210,6 @@ class PDORdvRepository implements RdvRepositoryInterface
             $stmt = $this->pdoRdv->prepare($sql);
             $stmt->execute([':patient_id' => $patientId]);
             $rdvs = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-            if ($this->logger) {
-                $this->logger->debug('PDORdvRepository: fetched rdvs for patient', ['count' => count($rdvs), 'patient_id' => $patientId]);
-            }
 
             // Enrichir avec les infos praticien
             $result = [];
@@ -288,23 +247,12 @@ class PDORdvRepository implements RdvRepositoryInterface
 
             return $result;
         } catch (\Throwable $e) {
-            if ($this->logger) {
-                $this->logger->error('PDORdvRepository: getRendezVousByPatientId failed', ['patient_id' => $patientId, 'err' => $e->getMessage()]);
-            }
             return [];
         }
     }
 
     public function isPraticienIndisponible(string $praticienId, \DateTimeImmutable $debut, \DateTimeImmutable $fin): bool
     {
-        if ($this->logger) {
-            $this->logger->debug('[PDORdvRepository] isPraticienIndisponible', [
-                'praticien_id' => $praticienId,
-                'debut' => $debut->format('Y-m-d H:i:s'),
-                'fin' => $fin->format('Y-m-d H:i:s')
-            ]);
-        }
-
         // Vérifier les congés dans la table indisponibilite (si elle existe)
         try {
             $sql = '
@@ -329,16 +277,10 @@ class PDORdvRepository implements RdvRepositoryInterface
             $count = (int)($result['count'] ?? 0);
 
             if ($count > 0) {
-                if ($this->logger) {
-                    $this->logger->debug('PDORdvRepository: praticien indisponible (congés)', ['count' => $count]);
-                }
                 return true;
             }
         } catch (\PDOException $e) {
             // Si la table n'existe pas, on ignore l'erreur
-            if ($this->logger) {
-                $this->logger->warning('PDORdvRepository: table indisponibilite inexistante', ['err' => $e->getMessage()]);
-            }
         }
 
         return false;

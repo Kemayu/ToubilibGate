@@ -55,6 +55,7 @@ services:
     depends_on:
       - toubirdv.db
       - toubiprat.db
+      - toubiauth.db
     command: sh -c "composer install && php -S 0.0.0.0:80 -t /var/php/public"
     environment:
       - SERVICE_TYPE=auth

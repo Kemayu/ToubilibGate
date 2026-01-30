@@ -20,13 +20,16 @@ class ToubilibAuthnService implements ToubilibAuthnServiceInterface
 
     public function byCredentials(CredentialsDTO $credentials): ProfileDTO
     {
+        error_log("Attempting signin for email: " . $credentials->email);
         $userData = $this->authRepository->findUserByEmail($credentials->email);
 
         if ($userData === null) {
+            error_log("User not found for email: " . $credentials->email);
             throw new AuthenticationFailedException('Invalid credentials');
         }
 
         if (!password_verify($credentials->password, $userData['password'])) {
+            error_log("Password verification failed for email: " . $credentials->email);
             throw new AuthenticationFailedException('Invalid credentials');
         }
 

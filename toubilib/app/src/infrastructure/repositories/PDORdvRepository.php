@@ -29,13 +29,6 @@ class PDORdvRepository implements RdvRepositoryInterface
 
     public function findCreneauxPraticien(string $praticienId, string $from, string $to): array
     {
-        if ($this->logger) {
-            $this->logger->debug('[PDORdvRepository] findCreneauxPraticien', [
-                'praticien_id' => $praticienId,
-                'from' => $from,
-                'to' => $to
-            ]);
-        }
         //status 1 rdv annulé
         $sql = '
             SELECT * FROM rdv 
@@ -55,10 +48,6 @@ class PDORdvRepository implements RdvRepositoryInterface
 
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-        if ($this->logger) {
-            $this->logger->debug('PDORdvRepository: fetched creneaux', ['count' => count($rows), 'praticien' => $praticienId, 'from' => $from, 'to' => $to]);
-        }
-
         return $rows ?: [];
     }
 
@@ -72,10 +61,6 @@ class PDORdvRepository implements RdvRepositoryInterface
         $stmt = $this->pdoRdv->prepare($sql);
         $stmt->execute([':id' => $id]);
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        if ($this->logger) {
-            $this->logger->debug('PDORdvRepository: fetched rdv by id', ['id' => $id, 'found' => (bool)$row]);
-        }
 
         return $row ?: null;
     }
@@ -329,9 +314,6 @@ class PDORdvRepository implements RdvRepositoryInterface
             $count = (int)($result['count'] ?? 0);
 
             if ($count > 0) {
-                if ($this->logger) {
-                    $this->logger->debug('PDORdvRepository: praticien indisponible (congés)', ['count' => $count]);
-                }
                 return true;
             }
         } catch (\PDOException $e) {

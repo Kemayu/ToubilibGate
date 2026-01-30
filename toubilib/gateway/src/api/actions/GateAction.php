@@ -71,12 +71,8 @@ class GateAction
             // Gestion des erreurs HTTP (4xx et 5xx)
             $statusCode = $e->getResponse()->getStatusCode();
             
-            if ($statusCode === 404) {
-                // Pour les 404, lever une HttpNotFoundException de Slim
-                throw new HttpNotFoundException($request, "Ressource non trouvée");
-            }
-            
-            // Pour les autres erreurs (400, 401, 403...), on renvoie la réponse du service distant
+            // Pour TOUS les erreurs client, on renvoie la réponse du service distant
+            // (y compris les 404, 400, 403, etc.)
             return $e->getResponse();
             
         } catch (RequestException $e) {
@@ -124,7 +120,7 @@ class GateAction
             }
         }
         
-        // Retourner le client par défaut (API principale)
+        // Retourner le client par défaut auth
         return $this->defaultClient;
     }
 
@@ -147,7 +143,7 @@ class GateAction
      */
     private function forwardHeaders(ServerRequestInterface $request): array
     {
-        $headersToForward = [
+        $allowedHeaders = [
             'Authorization',
             'Content-Type',
             'Accept',
@@ -157,7 +153,7 @@ class GateAction
         ];
         
         $headers = [];
-        foreach ($headersToForward as $header) {
+        foreach ($allowedHeaders as $header) {
             if ($request->hasHeader($header)) {
                 $headers[$header] = $request->getHeaderLine($header);
             }

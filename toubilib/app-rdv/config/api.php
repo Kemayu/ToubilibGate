@@ -39,11 +39,11 @@ return [
     ValidateInputRdv::class => function (ContainerInterface $c) {
         return new ValidateInputRdv();
     },
-    AuthnMiddleware::class => function (ContainerInterface $c) {
-        return new AuthnMiddleware();
-    },
-    AuthzMiddleware::class => function (ContainerInterface $c) {
-        return new AuthzMiddleware($c->get(AuthzServiceInterface::class));
-    },
+    // AuthnMiddleware::class => function (ContainerInterface $c) {
+    //     return new AuthnMiddleware();
+    // },
+    // AuthzMiddleware::class => function (ContainerInterface $c) {
+    //     return new AuthzMiddleware($c->get(AuthzServiceInterface::class));
+    // },
     
 ];

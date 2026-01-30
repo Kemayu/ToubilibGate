@@ -27,7 +27,7 @@ class SigninAction extends AbstractAction
             $data = $request->getParsedBody();
 
             $credentials = new CredentialsDTO(
-                $data['email'] ?? '',
+                trim($data['email'] ?? ''),
                 $data['password'] ?? ''
             );
 

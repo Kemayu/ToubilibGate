@@ -31,6 +31,9 @@ $app = AppFactory::createFromContainer($c);
 
 
 $app->addBodyParsingMiddleware();
+
+// Middleware de debug global (Configuration) - SUPPRIMÉ POUR PROD
+
 $app->addRoutingMiddleware();
 
 // Définit si on affiche les détails d'erreur : priorité .env DISPLAY_ERROR_DETAILS, sinon true pour dev

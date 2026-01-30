@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Slim\App;
 use toubilib\gateway\api\actions\GateAction;
 use toubilib\gateway\middlewares\AuthnMiddleware;
@@ -26,6 +28,14 @@ return function (App $app): App {
     $app->post('/auth/signin', GateAction::class);
     $app->post('/auth/signup', GateAction::class);
     $app->post('/auth/refresh', GateAction::class);
+
+    // Preflight CORS
+    $app->options('/{routes:.+}', function (
+        ServerRequestInterface $request,
+        ResponseInterface $response
+        ): ResponseInterface {
+        return $response;
+    });
     
     return $app;
 };

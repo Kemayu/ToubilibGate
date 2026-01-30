@@ -285,4 +285,41 @@ class PDORdvRepository implements RdvRepositoryInterface
 
         return false;
     }
+
+    public function getPraticienEmail(string $praticienId): ?string
+    {
+        try {
+            $sql = 'SELECT email FROM praticien WHERE id = :id LIMIT 1';
+            $stmt = $this->pdoPrat->prepare($sql);
+            $stmt->execute([':id' => $praticienId]);
+            $email = $stmt->fetchColumn();
+            return $email ? (string)$email : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    public function getPatientEmail(string $patientId): ?string
+    {
+        try {
+            // Essayer différentes tables possibles
+            $tables = ['patient', 'patients', 'dossiers', 'dossier'];
+            foreach ($tables as $table) {
+                try {
+                    $sql = "SELECT email FROM {$table} WHERE id = :id LIMIT 1";
+                    $stmt = $this->pdoPat->prepare($sql);
+                    $stmt->execute([':id' => $patientId]);
+                    $email = $stmt->fetchColumn();
+                    if ($email) {
+                        return (string)$email;
+                    }
+                } catch (\PDOException $e) {
+                    continue;
+                }
+            }
+            return null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
 }

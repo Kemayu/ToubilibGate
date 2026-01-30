@@ -162,11 +162,17 @@ class ServiceRendezVous implements ServiceRendezVousInterface
             return ['success' => false, 'code' => 'save_failed', 'message' => 'Échec sauvegarde RDV'];
         }
 
+        // Récupérer les emails pour les notifications
+        $praticienEmail = $this->rdvRepository->getPraticienEmail($data['praticien_id']) ?? '';
+        $patientEmail = $this->rdvRepository->getPatientEmail($data['patient_id']) ?? '';
+
         // Publier les événements de création
         $eventData = [
             'rdv_id' => $savedId,
             'praticien_id' => $data['praticien_id'],
             'patient_id' => $data['patient_id'],
+            'praticien_email' => $praticienEmail,
+            'patient_email' => $patientEmail,
             'date_heure_debut' => $data['date_heure_debut'],
             'date_heure_fin' => $data['date_heure_fin'],
             'motif' => $data['motif_visite'] ?? null,
@@ -215,11 +221,17 @@ class ServiceRendezVous implements ServiceRendezVousInterface
             return ['success' => false, 'code' => 'save_failed', 'message' => 'Échec sauvegarde annulation'];
         }
 
+        // Récupérer les emails pour les notifications
+        $praticienEmail = $this->rdvRepository->getPraticienEmail($rdv['praticien_id']) ?? '';
+        $patientEmail = $this->rdvRepository->getPatientEmail($rdv['patient_id']) ?? '';
+
         // Publier les événements d'annulation
         $eventData = [
             'rdv_id' => $id,
             'praticien_id' => $rdv['praticien_id'],
             'patient_id' => $rdv['patient_id'],
+            'praticien_email' => $praticienEmail,
+            'patient_email' => $patientEmail,
             'date_heure_debut' => $rdv['date_heure_debut'],
             'date_heure_fin' => $rdv['date_heure_fin'],
             'motif' => $rdv['motif_visite'] ?? null,

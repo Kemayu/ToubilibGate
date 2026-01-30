@@ -19,6 +19,8 @@ use toubilib\core\application\ports\api\service\AuthzServiceInterface;
 use toubilib\infrastructure\adapters\PraticienServiceHttpAdapter;
 use toubilib\core\application\ports\spi\EventPublisherInterface;
 use toubilib\infra\messaging\RabbitMQEventPublisher;
+use toubilib\core\application\ports\spi\MailerInterface;
+use toubilib\infra\mailer\SymfonyMailerAdapter;
 
 
 return [
@@ -44,6 +46,13 @@ return [
         $exchange = $_ENV['RABBITMQ_EXCHANGE'] ?? 'rdv_events';
         
         return new RabbitMQEventPublisher($host, $port, $user, $password, $exchange);
+    },
+
+    // Mailer (SMTP via MailCatcher ou autre)
+    MailerInterface::class => function (ContainerInterface $c) {
+        $dsn = $_ENV['MAILER_DSN'] ?? 'smtp://mail.toubi:1025';
+        $from = $_ENV['MAIL_FROM'] ?? 'no-reply@toubilib.local';
+        return new SymfonyMailerAdapter($dsn, $from);
     },
 
     // service rendez-vous

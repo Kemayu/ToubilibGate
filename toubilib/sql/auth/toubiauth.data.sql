@@ -1,7 +1,7 @@
 -- Adminer 4.17.1 PostgreSQL 17.4 (Debian 17.4-1.pgdg120+2) dump
-
+--   $2y$12$V21Au2EuL6LY5EZX3hBBwe2ScZhK4VSeC5yP1jd0eqausdWeTg5oO  $2y$12$HByDx1ZWz.R1YmsRwDgneu7FgYZMlh6lyNstDJKTaRjMye7j1Qfsi
 INSERT INTO "users" ("id", "email", "password", "role") VALUES
-('d975aca7-50c5-3d16-b211-cf7d302cba50',	'Denis.Teixeira@hotmail.fr',	'$2y$12$V21Au2EuL6LY5EZX3hBBwe2ScZhK4VSeC5yP1jd0eqausdWeTg5oO',	1),
+('d975aca7-50c5-3d16-b211-cf7d302cba50',	'Denis.Teixeira@hotmail.fr',	'$2y$12$p3LcfJYqYeWuGfxHp1xpeeBIZMoOirI3QQDg37qzYBZQI.yrIsfcK',	1),
 ('898ef62f-a482-3a35-a6f1-dffe4b7d9101',	'Marie.Guichard@sfr.fr',	'$2y$12$aH8JOrXoI1zXNUYvxb.rsOiLdvzMh8dr8kDaD611.sPQ.O8Lo/0Ui',	1),
 ('5c4ee229-fae5-3223-b4af-74957f334b02',	'Claude.Langlois@hotmail.fr',	'$2y$12$KlrIYb9aiCcDh6L8nmlAp.3BamurpYqAWBKRE4RC17wkOdIVbWAyy',	1),
 ('9bc3c6c2-8c38-3be6-8473-a2d8a7242a1d',	'Bertrand.Caron@yahoo.fr',	'$2y$12$IUnn5cIvf0sIWt.Vp5F8D.yx0DOWWcH/oTzbbJU6RWeWc50LXfc0y',	1),
@@ -51,7 +51,7 @@ INSERT INTO "users" ("id", "email", "password", "role") VALUES
 ('7cd42153-7105-32a3-8ebe-346be593bd91',	'Étienne.Hardy@hotmail.fr',	'$2y$12$3aBpXOwJblAQOc7NYQcF/OxcFphgxzZcFA0je.gMyQXthREKSNfam',	1),
 ('5c86d5d8-1997-3c99-ba56-dd51edb4983e',	'David.Olivier@noos.fr',	'$2y$12$np1kEVX9zq.iA80HZihUhOiuuH3nNDKLO.yWxKZWNJbfi4WFawkI.',	1),
 ('5abcdbc4-90c9-3b86-82a3-c4cf1f7377d0',	'Marguerite.Alves@gmail.com',	'$2y$12$e5qQ9eUzuTVc8wI3KACEhuKpxi79.lsSUV2XbYwvq9p/gOnMOk.Se',	1),
-('4305f5e9-be5a-4ccf-8792-7e07d7017363',	'radio.plus@sante.fr',	'$2y$12$HByDx1ZWz.R1YmsRwDgneu7FgYZMlh6lyNstDJKTaRjMye7j1Qfsi',	10),
+('4305f5e9-be5a-4ccf-8792-7e07d7017363',	'radio.plus@sante.fr',	'$2y$12$p3LcfJYqYeWuGfxHp1xpeeBIZMoOirI3QQDg37qzYBZQI.yrIsfcK',	10),
 ('af7bb2f1-cc52-3388-b9bc-c0b89e7f4c5b',	'Marine.Paul@hotmail.fr',	'$2y$12$0sAcSt2TtjgtAACwMXrT5uy3ptOdWKBUmPSCfFnQKyg8K8eRj5VWC',	10),
 ('b994a36f-794f-3ddc-b267-99673661466d',	'Laurence.Guichard@club-internet.fr',	'$2y$12$NnSwxwjFkFJWagqLTFEknOf24ttGC17Qfrm7SPo.D5T98.SS7h7tC',	10),
 ('8236bcbf-4c06-3d0e-8ab0-c4964e02c4ea',	'Arnaude.Pichon@yahoo.fr',	'$2y$12$PgVs6ez1F/dtLzaEcGSrMuBEdLo95bTdiyNrr5DesLYqFpNCj.D0S',	10),

@@ -104,6 +104,36 @@ services:
       - RABBITMQ_PORT=5672
       - RABBITMQ_USER=toubi
       - RABBITMQ_PASSWORD=toubi
+      - MAILER_DSN=smtp://mail.toubi:1025
+      - MAIL_FROM=no-reply@toubilib.local
+      - MAIL_TO_PATIENT=patient@test.local
+      - MAIL_TO_PRATICIEN=praticien@test.local
+
+  # Microservice mailer (consomme RabbitMQ et envoie les emails)
+  app.mailer:
+    build:
+      context: build
+      dockerfile: 8.4-cli.Dockerfile
+    volumes:
+      - ./app-mailer:/var/php
+    working_dir: /var/php
+    networks:
+      - toubilib.net
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mail.toubi:
+        condition: service_started
+    command: sh -c "composer install && php /var/php/mailer_consumer.php"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=toubi
+      - RABBITMQ_PASSWORD=toubi
+      - MAILER_DSN=smtp://mail.toubi:1025
+      - MAIL_FROM=no-reply@toubilib.local
+      - MAIL_TO_PATIENT=patient@test.local
+      - MAIL_TO_PRATICIEN=praticien@test.local
 
   #######################################
   ### RabbitMQ Service

@@ -53,4 +53,20 @@ interface RdvRepositoryInterface
      * @return bool true si le praticien est indisponible (en congé, férié, etc.)
      */
     public function isPraticienIndisponible(string $praticienId, \DateTimeImmutable $debut, \DateTimeImmutable $fin): bool;
+
+    /**
+     * Récupère l'email d'un praticien
+     * 
+     * @param string $praticienId ID du praticien
+     * @return string|null Email du praticien ou null si non trouvé
+     */
+    public function getPraticienEmail(string $praticienId): ?string;
+
+    /**
+     * Récupère l'email d'un patient
+     * 
+     * @param string $patientId ID du patient
+     * @return string|null Email du patient ou null si non trouvé
+     */
+    public function getPatientEmail(string $patientId): ?string;
 }

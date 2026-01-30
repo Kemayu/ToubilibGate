@@ -5,6 +5,8 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
+use toubilib\core\application\ports\spi\MailerInterface;
+use toubilib\infra\mailer\SymfonyMailerAdapter;
 
 // Configuration RabbitMQ
 $host = getenv('RABBITMQ_HOST') ?: 'rabbitmq';
@@ -15,57 +17,58 @@ $password = getenv('RABBITMQ_PASSWORD') ?: 'toubi';
 // Queues à consommer
 $queues = ['mail_praticiens', 'mail_patients'];
 
-echo "=== Consommateur de messages RabbitMQ ===\n";
-echo "Connexion à RabbitMQ: {$host}:{$port}\n";
-echo "Queues surveillées: " . implode(', ', $queues) . "\n";
-echo "En attente de messages... (CTRL+C pour arrêter)\n\n";
+// Configuration Mailer
+$mailerDsn = getenv('MAILER_DSN') ?: 'smtp://mail.toubi:1025';
+$mailerFrom = getenv('MAIL_FROM') ?: 'no-reply@toubilib.local';
+$mailToPatient = getenv('MAIL_TO_PATIENT') ?: 'patient@test.local';
+$mailToPraticien = getenv('MAIL_TO_PRATICIEN') ?: 'praticien@test.local';
+
+echo "Consommateur RabbitMQ (mail)\n";
+echo "Queues: " . implode(', ', $queues) . "\n";
+echo "SMTP: {$mailerDsn}\n";
+echo "En attente de messages...\n\n";
 
 try {
     // Connexion à RabbitMQ
     $connection = new AMQPStreamConnection($host, $port, $user, $password);
     $channel = $connection->channel();
 
+    // Mailer
+    /** @var MailerInterface $mailer */
+    $mailer = new SymfonyMailerAdapter($mailerDsn, $mailerFrom);
+
     // Callback pour traiter les messages
-    $callback = function (AMQPMessage $msg) {
-        echo str_repeat('=', 70) . "\n";
-        echo "Message reçu à " . date('Y-m-d H:i:s') . "\n";
-        echo str_repeat('-', 70) . "\n";
-        
-        // Afficher les informations de routage
-        echo "Queue: {$msg->getDeliveryTag()}\n";
-        echo "Routing Key: {$msg->getRoutingKey()}\n";
-        echo "Exchange: {$msg->getExchange()}\n";
-        
-        // Décoder et afficher le contenu
+    $callback = function (AMQPMessage $msg) use ($mailer, $mailToPatient, $mailToPraticien) {
         $data = json_decode($msg->getBody(), true);
-        
-        if (json_last_error() === JSON_ERROR_NONE) {
-            echo "\nContenu du message:\n";
-            echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n";
-            
-            // Extraction des informations clés
-            if (isset($data['event_type'])) {
-                echo "\nType d'événement: " . strtoupper($data['event_type']) . "\n";
-            }
-            if (isset($data['rdv_id'])) {
-                echo "RDV ID: {$data['rdv_id']}\n";
-            }
-            if (isset($data['recipient_type'])) {
-                echo "Destinataire: " . ucfirst($data['recipient_type']) . "\n";
-            }
-            if (isset($data['motif'])) {
-                echo "Motif: {$data['motif']}\n";
-            }
-            if (isset($data['date_heure_debut'])) {
-                echo "Date: {$data['date_heure_debut']}\n";
-            }
-        } else {
-            echo $msg->getBody();
+
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($data)) {
+            echo "[" . date('H:i:s') . "] Message invalide (JSON)\n";
+            $msg->ack();
+            return;
         }
-        
-        echo str_repeat('=', 70) . "\n\n";
-        
-        // Acquitter le message
+
+        $eventType = (string)($data['event_type'] ?? 'event');
+        $recipientType = (string)($data['recipient_type'] ?? 'patient');
+        $to = (string)($data['recipient_email']
+            ?? $data['patient_email']
+            ?? $data['praticien_email']
+            ?? ($recipientType === 'praticien' ? $mailToPraticien : $mailToPatient));
+
+        $subject = "RDV {$eventType} ({$recipientType})";
+        $body = "Bonjour,\n\n"
+            . "Un rendez-vous a été {$eventType}.\n"
+            . "RDV: " . ($data['rdv_id'] ?? 'N/A') . "\n"
+            . "Praticien: " . ($data['praticien_id'] ?? 'N/A') . "\n"
+            . "Patient: " . ($data['patient_id'] ?? 'N/A') . "\n"
+            . "Date début: " . ($data['date_heure_debut'] ?? 'N/A') . "\n"
+            . "Date fin: " . ($data['date_heure_fin'] ?? 'N/A') . "\n"
+            . "Motif: " . ($data['motif'] ?? 'N/A') . "\n\n"
+            . "--\nToubilib";
+
+        $mailer->send($to, $subject, $body);
+
+        echo "[" . date('H:i:s') . "] Mail envoyé à {$to} ({$msg->getRoutingKey()})\n";
+
         $msg->ack();
     };
 

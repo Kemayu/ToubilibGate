@@ -91,11 +91,53 @@ services:
     networks:
       - toubilib.net
     depends_on:
-      - toubirdv.db
-      - toubiprat.db
+      toubirdv.db:
+        condition: service_started
+      toubiprat.db:
+        condition: service_started
+      rabbitmq:
+           condition: service_healthy
     command: sh -c "composer install && php -S 0.0.0.0:80 -t /var/php/public"
     environment:
       - SERVICE_TYPE=rdv
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=toubi
+      - RABBITMQ_PASSWORD=toubi
+
+  #######################################
+  ### RabbitMQ Service
+  #######################################
+  rabbitmq:
+    image: rabbitmq:4-management
+    ports:
+      - '15672:15672'
+      - '5672:5672'
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 8s
+      timeout: 30s
+      retries: 3
+    networks:
+      - toubilib.net
+    volumes:
+      - ./rabbitmq.toubi:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=toubi
+      - RABBITMQ_DEFAULT_PASS=toubi
+
+  ##############################################
+  ###  MailCatcher
+  ##############################################
+  mail.toubi:
+    build:
+      context: build
+      dockerfile: mailcatcher.Dockerfile
+    networks:
+      - toubilib.net
+    ports:
+      - '1025:1025'
+      - '1080:1080'
 
  
 
